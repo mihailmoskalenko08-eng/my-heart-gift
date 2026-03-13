@@ -8,7 +8,7 @@
     <style>
         body {
             background-color: #000;
-            color: #ff0000; /* Красный цвет сердца */
+            color: #ff0000;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -16,18 +16,17 @@
             height: 100vh;
             margin: 0;
             overflow: hidden;
-            font-family: monospace; /* Шрифт для символов */
+            font-family: monospace;
         }
 
-        /* Контейнер для сердца из символов */
         pre {
-            font-size: 12px; 
-            line-height: 12px;
+            /* Размер шрифта (чем меньше, тем меньше сердце) */
+            font-size: 8px; 
+            line-height: 8px;
             font-weight: bold;
-            white-space: pre; /* Чтобы пробелы не схлопывались */
+            white-space: pre;
         }
 
-        /* Текст поздравления */
         .message {
             margin-top: 20px;
             color: white;
@@ -47,7 +46,6 @@
 </head>
 <body>
 
-    <!-- Сюда скрипт будет рисовать сердце -->
     <pre id="heart"></pre>
     
     <div class="message">С Днем Рождения!</div>
@@ -56,47 +54,48 @@
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
 
-        // Математика для 3D сердца
         const pre = document.getElementById("heart");
-        
+
         let interval = setInterval(() => {
             let result = [];
             
-            // Настройки размера и вращения
-            // t - время (угол вращения)
-            let t = Date.now() / 1000; 
+            // Время для анимации
+            let t = Date.now() / 1000;
             
-            // Проходим по сетке координат (y от 1.3 до -1.1, x от -1.2 до 1.2)
-            for (let y = 1.3; y > -1.1; y -= 0.06) {
-                let row = "";
-                for (let x = -1.2; x < 1.2; x += 0.025) {
-                    
-                    // Формула сердца и вращения
-                    let z = x * x + y * y - 1;
-                    let f = z * z * z - x * x * y * y * y;
-                    
-                    // Добавляем эффект вращения (синус/косинус от времени t)
-                    let rotateX = x * Math.cos(t) - y * Math.sin(t);
-                    let rotateY = x * Math.sin(t) + y * Math.cos(t);
-                    
-                    // Еще раз проверяем форму с учетом вращения для 3D эффекта
-                    let zR = rotateX * rotateX + Math.pow(rotateY * 1.5 - 0.5, 2) - 1;
-                    let fR = zR * zR * zR - rotateX * rotateX * Math.pow(rotateY * 1.5 - 0.5, 3);
+            // Формула биения сердца:
+            // scale меняется от 1.0 до 1.15 ритмично
+            // Цифра 4 отвечает за скорость биения (больше = быстрее)
+            let scale = 1 + 0.15 * Math.pow(Math.sin(t * 4), 2);
 
-                    // Если точка попадает в форму сердца
-                    if (fR < 0) {
-                        // Выбираем символ в зависимости от глубины (чтобы было объемно)
-                        // Менять символы можно здесь: ".:-=+*#%@"
-                        let charIndex = Math.floor(Math.abs(rotateX - rotateY) * 5) % 5;
-                        row += ".:-=+*#%@"[charIndex] || "*";
+            // Проходим по координатам
+            // y от 1.3 до -1.3 (высота)
+            for (let y = 1.3; y > -1.3; y -= 0.06) {
+                let row = "";
+                
+                // x от -1.2 до 1.2
+                // Шаг 0.05 делает сердце узким (как ты просил)
+                for (let x = -1.2; x < 1.2; x += 0.05) {
+                    
+                    // Корректируем координаты с учетом пульсации (scale)
+                    // Деление на scale увеличивает/уменьшает фигуру
+                    let sx = x / scale;
+                    let sy = y / scale;
+
+                    // Классическая формула 2D сердца: (x^2 + y^2 - 1)^3 - x^2 * y^3 <= 0
+                    let z = sx * sx + sy * sy - 1;
+                    
+                    if (z * z * z - sx * sx * sy * sy * sy < 0) {
+                        // Сердце закрашено. 
+                        // Можно сделать "блик" меняя символы, или оставить просто '*', '#', '@'
+                        row += "@"; 
                     } else {
-                        row += " "; // Пустота
+                        row += " "; 
                     }
                 }
                 result.push(row);
             }
             pre.innerText = result.join("\n");
-        }, 50); // Скорость обновления (50мс)
+        }, 50);
     </script>
 </body>
 </html>
